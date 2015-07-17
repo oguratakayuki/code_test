@@ -1,0 +1,2 @@
+
+gcc -z execstack -m32 shell.c
