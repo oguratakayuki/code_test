@@ -15,6 +15,10 @@
 #b = A::B.new
 #
 
+#moduleを静的に呼び出す場合はdef self.hogeとよびだす方法
+#moduleをネームスペースとして利用する.中にclassがある場合でも有効
+#module内に定義したインスタンスメソッドはclassからincludeしてとりこまないと有効にならない
+#
 module C
   class D
     def self.method_d
@@ -34,4 +38,43 @@ end
 
 #e = C::D.new
 e = C::D::E.new
+
+
+module Phone
+  class Mobile
+    def initialize(name, number)
+      @name = name
+      @number = number
+    end
+    def type
+      Phone::Tool.analayze_type(@number)
+    end
+  end
+  class Stable
+    def initialize(name, number)
+      @name = name
+      @number = number
+    end
+    def type
+      Phone::Tool.analayze_type(@number)
+    end
+  end
+
+  module Tool
+    def self.analayze_type(number)
+      if number == '090'
+        'mobile'
+      else
+        'stable'
+      end
+    end
+  end
+end
+
+mobile_phone = Phone::Mobile.new('old phone', '090')
+puts mobile_phone.type
+
+puts Phone::Tool.analayze_type('090')
+
+
 
