@@ -2,11 +2,6 @@ class Event
   def initialize
     @configurations ={}
   end
-  #def configuration(case)
-  #  conf = Configuration.new
-  #  yield(conf) if block_given?
-  #  @configurations[case] = conf
-  #end
 
   def configuration(on, &block)
     @configurations[on] = block
