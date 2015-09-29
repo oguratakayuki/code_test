@@ -1,8 +1,18 @@
 # -*- encoding: utf-8 -*-
+#moduleのselfメソッドはモジュールメソッドと呼ばれる
 
-#instanceメソッドはinstanceからしかよべず、classメソッドはclassからしかよべない
-#class include module の場合はinstanceメソッドとして取り込む
-#class extend module の場合はクラスメソッドとして取り込む
+#instanceメソッドはinstanceからしか呼べず、classメソッドはclassからしかよべない
+#class include module の場合はmoduleのselfがついてないメソッドをinstanceメソッドとして取り込む
+#class extend module の場合はself.のついていないメソッドをクラスメソッドとして取り込む(L.109, L.40)
+#
+#
+#現状、module内でself.で定義されたmethodをrubyの範囲で取り込む手段がわからない
+#module内でself付きで定義されたメソッドはHoge.fugaと直接呼ぶために実装されるのが基本か
+#include,extendともにselfがついていないメソッドをとりこむ
+# includeはそれらのメソッドをinstanceメソッドとして、extendはクラスメソッドとして取り込む
+#
+# module -> moduleに関しては
+# extendしたときのみ Hoge.fuga (モジュール)として呼べる
 module A
   def self.method_a
     puts 'method_a'
@@ -11,6 +21,9 @@ module A
     puts 'method_a2'
   end
 end
+#直接呼び出す
+A.method_a
+#A.method_a2 #呼べない Rubyではモジュールをインクルードしても、モジュールのインスタンスメソッドはクラスには継承されません.呼ぶにはextendする
 
 # includeした場合
 module B
@@ -20,12 +33,9 @@ module B
   end
 end
 
-
-A.method_a
-#A.method_a2 #呼べない Rubyではモジュールをインクルードしても、モジュールメソッド（モジュールの特異メソッド）はクラスには継承されません.呼ぶにはextendする
 B.method_b
-#B.method_a  include ではインスタンスメソッドのみ追加される
-
+#B.method_a  #include,extendどちらでもよべない
+#B.method_a2 #includeでは呼べないがextendでならよべる
 
 ## extendした場合
 module B2
@@ -36,10 +46,16 @@ module B2
 end
 
 #B2.method_a  #よべない(
-B2.method_a2 #includeではなくてextendなのでよべる!!!
+B2.method_a2 #includeではなくてextendなのでよべる!!!但しクラスメソッドになる
              #Rubyではモジュールをインクルードしても、モジュールメソッド（モジュールの特異メソッド）はクラスには継承されません
 
-
+#extendをincludeでやった場合
+#ModuleもClassクラスのインスタンスなため、無名クラスをオープンしてその特異クラスを定義しそこでinclude
+#無名クラスを定義して、そこでAをinclude?
+class << B
+  include A
+end
+B.method_a2
 
 class C
   def self.method_c
@@ -90,20 +106,32 @@ class F
   #include C classはincludeできない
   #extend C classはextendできない
   extend D
-  def self.method_e
-    puts 'method_e'
+  def self.method_f
+    puts 'method_f'
   end
-  def method_e2
-    puts 'method_e2'
+  def method_f2
+    puts 'method_f2'
   end
 end
 
-#F.method_d
-F.method_d2 #呼べる！なぜ？ #instance化していない
+F.method_f
+#F.method_f2 #インスタンスメソッドなのでよべない
+
+
+#!!!!!!!!!!!!!!!!!!!!!!!!!!
+#F.method_d #モジュールのselfメソッドがMix-in先クラスのselfメソッドとして働くことはありません。
+            #つまりモジュールメソッドはクラスメソッドにはならないのです。この点が継承の場合とは異なっています。
+F.method_d2 #extendはモジュールのメソッドを直接オブジェクトに追加できる(その際クラスメソッドになる？)
+#!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
 
 f_obj = F.new
+#インスタンス化することでclassオブジェクトでもなくmoduleオブジェクトでもなくオブジェクトになる
+#オブジェクトはクラスやモジュールと同様に、その内部にselfメソッドを持つことができます。
+#オブジェクトにおけるselfメソッドは、「Singletonメソッド」または「抽象メソッド」などと呼ばれています。
 #f_obj.method_d #呼べない!
-#f_obj.method_d2 #呼べない!
+#f_obj.method_d2 #呼べない.!!!Dモジュールがmixinされたのはf_objectではなく、Fクラス.f_objectはオブジェクトで、Fクラスではない
 
 f_obj2 = F.new
 f_obj2.extend D

@@ -10,6 +10,7 @@ class Event
   def execute(on)
     conf = Configuration.new
     @configurations[on].call(conf)
+    #yield self(capybaraのやり方)
     puts "type=#{conf.type}, place=#{conf.place}, time=#{conf.time}"
   end
 
