@@ -2,6 +2,12 @@ class Hoge
   def hoge
     puts 'hoge'
   end
+  #The class << self syntax changes the current self to point to the metaclass of the current object.
+  class << self
+    def meta_method
+      puts 'meta_method'
+    end
+  end
 end
 
 hoge = Hoge.new
@@ -17,6 +23,10 @@ end
 #Hogeにはメソッドがない
 metaclass = class << Hoge; self; end
 puts metaclass.instance_methods.grep(/fuga/)
+#classメソッドはmetaクラスのインスタンスメソッド?
+puts metaclass.instance_methods.grep(/meta/)
+#hogeはclassクラスのインスタンスメソッド?
+puts Hoge.instance_methods.grep(/hoge/)
 
 
 #hogeオブジェクトのmetaclassにある
@@ -37,3 +47,7 @@ class << piyo
 end
 metaclass = class << piyo; self; end
 puts metaclass.instance_methods.grep(/piyo/)
+
+#In Ruby, both 'metaclass' and 'singleton class' means the same
+#https://rubymonk.com/learning/books/4-ruby-primer-ascent/chapters/39-ruby-s-object-model/lessons/131-singleton-methods-and-metaclasses
+puts Hoge.instance_methods.grep(/hoge/)
