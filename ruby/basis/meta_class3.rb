@@ -32,3 +32,4 @@ puts "end"
 puts Bar.instance_methods.grep(/method_1/)
 puts Bar.metaclass.instance_methods.grep(/method_2/)
 puts Bar.metaclass.instance_methods.grep(/method_3/)
+
