@@ -1,0 +1,11 @@
+    url_tree = {
+                 a: { aa: {aaa: nil, aab: nil, aac: nil}, ab: {aba: nil, abb: nil, abc: nil} }, 
+                 b: { ba: {baa: nil, bab: nil, bac: nil}, bb: {bba: nil, bbb: nil, bbc: nil} }, 
+                 c: { ca: {caa: nil, cab: nil, bac: nil}, cb: {bba: nil, bbb: nil, bbc: nil} }, 
+               }
+
+#    body = body += "<a href='#{link_url}'>link</a>"
+path = '/aa/bb'
+path = path.split('/').reject{|t| t == ''}
+puts url_tree
+ 
