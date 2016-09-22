@@ -2,46 +2,56 @@ require 'mechanize'
 require 'uri'
 class Crawler
   attr_reader :results
-  def initialize(url, word)
-    @url = url
+  def initialize(domain, word)
+    @domain = domain
     @results = []
-    shortest_url_path_word_exist(url, word, consumed_time=0, histories=[])
+    @visited = []
+    @total_loop_count_for_debug = 0
+    shortest_url_path_word_exist(@domain, word, consumed_time=0, histories=[])
+  end
+  def valid_url link
+    URI.parse(link).host == URI.parse(@domain).host
   end
   def shortest_url_path_word_exist(target_url, search_word, consumed_time=0, histories=[])
-    if histories.size > 10
-      puts 'force end'
+    @total_loop_count_for_debug = @total_loop_count_for_debug + 1
+    return false if @total_loop_count_for_debug > 15
+    if @visited.any?{|visited| URI(visited) == URI(target_url)}
+      abort 'HEEERE'
       return false 
+    else
+      puts 'not visit'
+      puts target_url
+    end
+    if histories.size > 2
+      puts 'visited'
+      return false
     end
     start_time = Time.now
     agent = Mechanize.new
-    puts target_url
-    sleep 1
-    puts 'hey2'
+    sleep 3
     agent.get(target_url)
-    puts 'hey3'
     histories = histories + agent.history.map(&:uri)
+    @visited = @visited + agent.history.map(&:uri)
     if agent.page.search('body').text.match(/#{search_word}/)
+      puts 'success'
       end_time = Time.now
       consumed_time = consumed_time + (end_time - start_time)
       @results << {consumed_time: consumed_time, histories: histories}
     else
-      #puts agent.visited?('http://example.com')
-      #puts agent.page.links[10].resolved_uri
-      
-      #agent.page.links.reject{|t| histories.include?(t.resolved_uri) }.each do |link|
-      agent.page.search("body").css("a").map{|link| URI.join(@url, link['href']) }.reject{|link_url| histories.include?(link_url) }.each do |link|
+      links = agent.page.search("body").css("a").reject{|link| link['href'] =~ /javascript/  || link['href'] =~ /mailto/ }.map{|link| URI.join(@domain, link['href']) }
+      links.reject{|link_url| @visited.include?(link_url) }.each do |link|
         end_time = Time.now
         consumed_time = consumed_time + (end_time - start_time)
-        puts 'hey'
-        shortest_url_path_word_exist(link, search_word, consumed_time, histories)
+        shortest_url_path_word_exist(link.to_s, search_word, consumed_time, histories) if valid_url(link.to_s)
       end
-      #puts agent.history.map(&:uri)
-      #search_world
     end
   end
 end
 
 target_url = 'https://www.menriku.com'
 search_word = '男子スタッフを募集しておりますので'
+search_word = '兵庫'
 crawler = Crawler.new(target_url, search_word)
-puts crawler.results
+puts 'END!!!!'
+puts crawler.results.sort{|a,b| a[:consumed_time] <=> b[:consumed_time] }.first
+puts crawler.results.size
