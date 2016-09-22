@@ -19,8 +19,6 @@ class Investigator
     @agent.page.search("body").css("a").reject{|link| link['href'] =~ /javascript/  || link['href'] =~ /mailto/ }.map{|link| URI.join(@domain, link['href']).to_s.chomp('/') }
   end
 end
-class CrawlingLogger
-end
 class CrawlingRuler
   attr_reader :results
   #crawlingする時の動きを制御
